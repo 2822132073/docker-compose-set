@@ -1,0 +1,81 @@
+version: '2'
+services:
+  nacos_1:
+    image: nacos/nacos-server:1.4.1
+    environment:
+     - PREFER_HOST_MODE=ip
+     - MODE=cluster 
+     - NACOS_SERVERS=172.16.238.10
+     - NACOS_APPLICATION_PORT=8848
+     - NACOS_SERVERS=172.16.238.10 172.16.238.11 172.16.238.12
+     - SPRING_DATASOURCE_PLATFORM=mysql
+     - MYSQL_SERVICE_HOST=172.16.238.13
+     - MYSQL_SERVICE_PORT=3306
+     - MYSQL_SERVICE_USER=root
+     - MYSQL_SERVICE_PASSWORD=123456789
+     - MYSQL_SERVICE_DB_NAME=nacos
+    ports:
+      - '8857:8848'
+    networks:
+      nacos_net:
+        ipv4_address: 172.16.238.10
+  nacos_2:
+    image: nacos/nacos-server:1.4.1
+    environment:
+     - PREFER_HOST_MODE=ip
+     - MODE=cluster 
+     - NACOS_SERVERS=172.16.238.11
+     - NACOS_APPLICATION_PORT=8848 
+     - NACOS_SERVERS=172.16.238.10:8848 172.16.238.11:8848 172.16.238.12:8848
+     - SPRING_DATASOURCE_PLATFORM=mysql 
+     - MYSQL_SERVICE_HOST=172.16.238.13
+     - MYSQL_SERVICE_PORT=3306 
+     - MYSQL_SERVICE_USER=root
+     - MYSQL_SERVICE_PASSWORD=123456789
+     - MYSQL_SERVICE_DB_NAME=nacos 
+    ports:
+      - '8858:8848'
+    networks:
+      nacos_net:
+        ipv4_address: 172.16.238.11
+
+  nacos_3:
+    image: nacos/nacos-server:1.4.1
+    environment:
+     - PREFER_HOST_MODE=ip
+     - MODE=cluster 
+     - NACOS_SERVERS=172.16.238.12
+     - NACOS_APPLICATION_PORT=8848 
+     - NACOS_SERVERS=172.16.238.10:8848 172.16.238.11:8848 172.16.238.12:8848
+     - SPRING_DATASOURCE_PLATFORM=mysql 
+     - MYSQL_SERVICE_HOST=172.16.238.13
+     - MYSQL_SERVICE_PORT=3306 
+     - MYSQL_SERVICE_USER=root
+     - MYSQL_SERVICE_PASSWORD=123456789
+     - MYSQL_SERVICE_DB_NAME=nacos 
+    ports:
+      - '8859:8848'
+    networks:
+      nacos_net:
+        ipv4_address: 172.16.238.12
+  mysql:
+    image: bitnami/mysql:5.7
+    volumes:
+      - mysql_data:/bitnami/mysql/data
+      - ./mysql-schema.sql:/docker-entrypoint-initdb.d/nacos-mysql.sql
+      - ./my_custom.cnf:/opt/bitnami/mysql/conf/my_custom.cnf:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456789
+    networks:
+      nacos_net:
+        ipv4_address: 172.16.238.13
+
+networks:
+  nacos_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.238.0/24
+volumes:
+  mysql_data: {}
